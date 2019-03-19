@@ -1,1 +1,2 @@
-# SENG474Project
+# Audio classification project 
+
