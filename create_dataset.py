@@ -2,6 +2,7 @@ import os
 import shutil
 import math
 import random
+from pydub import AudioSegment
 
 def get_data_samples(path_dataset):
     count = 0
@@ -48,38 +49,78 @@ def get_data_samples(path_dataset):
         for file in wav_files_speech:
             shutil.move("./Audio_Speech_Actors_01-24/Actor_{}/".format(actor) + file, path_dataset)
 
+def shorten_audio(filename, path_dataset):
+    indicators = filename.split("-")
+    if indicators[1] == "01":
+        return shorten_speech(filename, path_dataset)
+    else:
+        return shorten_song(filename, path_dataset)
 
-def split_train_test(path_dataset, path_train, path_test):
-    all_files =  os.listdir(path_dataset)
+def shorten_song(filename, path_dataset):
+    song = AudioSegment.from_wav(path_dataset + "/" + filename)
+    # we trim the song files from 1 to 4 seconds
+    start_sec = int(1 * 1000)
+    end_sec = int(4 * 1000)
+    cut_audio = song[start_sec:end_sec]
+
+    return cut_audio
+
+def shorten_speech(filename, path_dataset):
+    speech = AudioSegment.from_wav(path_dataset + "/" + filename)
+    # we trim the speech files from 0.25 to 3.25 seconds
+    start_sec = int(0.25 * 1000)
+    end_sec = int(3.25 * 1000)
+    cut_audio = speech[start_sec:end_sec]
+
+    return cut_audio
+
+
+def split_train_test(path_dataset_trimmed, path_train, path_test):
+    all_files =  os.listdir(path_dataset_trimmed)
     all_files_sz = len(all_files)
 
     # we do a 80%/20% train/test split on the data
     test_sz = math.floor(0.2 * all_files_sz)
 
+    # randomly sample 20% of the dataset to be the test set
     test_data = random.sample(all_files, test_sz)
 
     train_data = [x for x in all_files if x not in test_data]
 
     for file in train_data:
-        shutil.move(path_dataset + "/" + file, path_train)
+        shutil.move(path_dataset_trimmed + "/" + file, path_train)
 
     for file in test_data:
-        shutil.move(path_dataset + "/" + file, path_test)
+        shutil.move(path_dataset_trimmed + "/" + file, path_test)
 
 def main():
-    # create a temporary directory to hold all the data samples
     path_dataset = "./Dataset"
+    # create a temporary directory to hold all the data samples
     os.mkdir(path_dataset)
     get_data_samples(path_dataset)
+
+    path_dataset_trimmed = "./DatasetTrimmed"
+    # create a temporary directory to hold all the trimmed data samples
+    os.mkdir(path_dataset_trimmed)
+    for filename in os.listdir(path_dataset):
+        return_file = shorten_audio(filename, path_dataset)
+        return_file.export(path_dataset_trimmed + "/" + filename, "wav")
+
+    # remove the temporary Dataset directory
+    # directories must be empty to be removed
+    for file in os.listdir(path_dataset):
+        os.remove(path_dataset + "/" + file)
+    os.rmdir(path_dataset)
+
 
     path_train = "./Train"
     path_test = "./Test"
     os.mkdir(path_train)
     os.mkdir(path_test)
-    split_train_test(path_dataset, path_train, path_test)
+    split_train_test(path_dataset_trimmed, path_train, path_test)
 
-    # remove the temporary Dataset directory
-    os.rmdir(path_dataset)
+    # remove the temporary trimmed dataset directory
+    os.rmdir(path_dataset_trimmed)
 
     train_sz = len(os.listdir(path_train))
     test_sz = len(os.listdir(path_test))
