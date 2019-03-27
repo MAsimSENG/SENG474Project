@@ -1,41 +1,53 @@
+import os
 from python_speech_features import mfcc
 import librosa as li
+from os import listdir
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib import cm
 
-# realistically, we should have sample_rate as a parameter (and have nfft as 2^k)
-# Also it is definitely worth truncating the "zero-amplitude" part of the wav file (it will speed up the algorithm immensely)
-# Note: we have 1152 data points total -- this might not be enough. I would suggest data augmentation
 
-# sample at 16000 since this is default for MFCC calculations
-time_series, sample_rate = li.core.load('./Audio_Speech_Actors_01-24/Actor_16/03-01-06-01-01-01-16.wav', sr=16000)
+def extract_features(path, data_files):
+    # number of data samples
+    N = len(data_files)
+    D = -1 # this number can be determined mathematically
 
-print(len(time_series) / sample_rate)
+    # feature matrix
+    X = np.zeros((N,D))
 
-#total time of the wav file
-print("Length of clip: ", len(time_series)/sample_rate, "s", sep='')
+    sample_num = 0
+    for f in data_files():
+        '''trim the wav file to three seconds here'''
 
-# note that since we take s_i(n) over the all n (which is nfft)
-# then we must have frame size cropped or padded with zeros
-# since nfft = 512 and frame_length = 400, then we will have some zero padding
-features = mfcc(time_series, sample_rate)
+        # sample at 16000 since this is default for MFCC calculations
+        time_series, sample_rate = li.core.load(path + "/" + f, sr=16000)
+        #each sample's features are flattened to 1 dimension
+        features_vec = mfcc(time_series, sample_rate).flatten()
 
-features_1 = features - np.mean(features, axis = 0)
+        '''get the mfcc delta and delta-delta features here'''
 
-# shape of the feature matrix
-# should be floor/ceil(328.83125) by 13 (default number of cepstrums)
-print("Shape of output for one sample:", features.shape)
+        X[sample_num] = features_vec
+        sample_num += 1
 
-#Visualize the MFCC without mean difference
-fig, ax = plt.subplots()
-mfcc_data= np.swapaxes(features, 0 ,1)
-cax = ax.imshow(mfcc_data, interpolation='nearest', cmap=cm.coolwarm, origin='lower')
-ax.set_title('MFCC')
+    return X
 
-#Visualize the MFCC with mean difference
-fig, ax = plt.subplots()
-mfcc_data= np.swapaxes(features_1, 0 ,1)
-cax = ax.imshow(mfcc_data, interpolation='nearest', cmap=cm.coolwarm, origin='lower')
-ax.set_title('MFCC')
-plt.show()
+# path used to specify whether it is train, validation or test code
+def get_features(path):
+    data_files = os.listdir(path)
+
+    X = extract_features(path, data_files)
+
+    '''call for feature normalization at this point'''
+
+    '''call for Principal Component Analysis at this point'''
+
+    return X
+
+# path used to specify whether it is train, validation or test code
+def get_labels(path):
+    data_files = os.listdir(path)
+    N = len(data_files)
+
+    # sample labels, the 3rd number (position 2) in the file name corresponds to the sample label
+    y = np.asarray([f.rstrip(".wav").split("-")[2] for f in data_files]).reshape((N,1))
+
+    return y
+
