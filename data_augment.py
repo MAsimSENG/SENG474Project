@@ -4,12 +4,8 @@
 import librosa as li
 import numpy as np
 import os
-
-
-
-
             
-
+            
 def add_noise( data):
     
         noise = np.random.randn(len(data))
@@ -21,6 +17,7 @@ def add_noise( data):
         return data_noise
 
 def shift( data):
+            
         return np.roll(data, 20000)
 
 
@@ -28,7 +25,6 @@ def shift( data):
 def stretch( data, rate=0.25):
     
         input_length = len(data) # corresponding to 2.5 seconds 
-        
                 
         data = li.effects.time_stretch(data, rate)
         
@@ -38,13 +34,8 @@ def stretch( data, rate=0.25):
         
         end_index = int((stretched_length + input_length)/2)
         
-        
-        
-    
         data = data[start_index:end_index]
-            
-
-            
+               
         return data
 
 
