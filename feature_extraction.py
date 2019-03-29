@@ -1,5 +1,6 @@
 import os
 from python_speech_features import mfcc
+from python_speech_features import delta
 import librosa as li
 import numpy as np
 
@@ -25,23 +26,27 @@ def get_features(path):
         # depending on the type of audio (song/speech).
         file_id = f.rstrip(".wav").split("-")
         if int(file_id[1]) == 1:
-            time_series = time_series[int(0.5 * sample_rate):int(3 * sample_rate)]
+            time_series = time_series[int(0.25 * sample_rate):int(2.75 * sample_rate)]
         else:
             time_series = time_series[int(1 * sample_rate):int(3.5 * sample_rate)]
 
         # each sample's features are flattened to 1 dimension
-        features_vec = mfcc(time_series, sample_rate).flatten()
+        mfcc_vec = mfcc(time_series, sample_rate).flatten()
+        #delta_vec = delta(mfcc_vec, 2)
+        #delta_delta_vec = delta(delta_vec, 2)
+        #features_vec = np.concatenate((mfcc_vec.flatten(),delta_vec.flatten(),
+        #                               delta_delta_vec.flatten()), axis=None)
 
-        assert(features_vec.shape[0] == D)
+        assert(mfcc_vec.shape[0] == D)
 
         '''get the mfcc delta and delta-delta features here'''
 
-        X[sample_num] = features_vec
+        X[sample_num] = mfcc_vec
         sample_num += 1
 
         # just to keep track of feature extraction process
-        if sample_num % 50 == 0:
-            print(sample_num)
+        if sample_num % 10 == 0:
+            print(100 * sample_num / N, "% done extraction", sep = '')
 
     return X
 

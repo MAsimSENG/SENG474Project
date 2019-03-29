@@ -1,7 +1,7 @@
 import os
 import shutil
 import math
-import random
+import numpy as np
 
 def get_data_samples(path_dataset):
     count = 0
@@ -23,9 +23,7 @@ def get_data_samples(path_dataset):
             files_song_id = [(f,f.rstrip(".wav").split("-")) for f in files_song]
 
             for file,id in files_song_id:
-                #03 = happy, 04 = sad, 05 = angry
-                #id[2] is the number that determines the emotion the actor was speaking with in this video
-                if int(id[2]) in (3,4,5):
+                if int(id[2]) in [3, 4, 5, 6, 7, 8]:
                     wav_files_song.append(file)
                     count += 1
 
@@ -39,8 +37,7 @@ def get_data_samples(path_dataset):
         files_speech_id = [(f,f.rstrip(".wav").split("-")) for f in files_speech]
 
         for file,id in files_speech_id:
-            #03 = happy, 04 = sad, 05 = angry
-            if int(id[2]) in (3,4,5):
+            if int(id[2]) in [3,4,5,6,7,8]:
                 wav_files_speech.append(file)
                 count += 1
 
@@ -49,29 +46,45 @@ def get_data_samples(path_dataset):
             shutil.move("./Audio_Speech_Actors_01-24/Actor_{}/".format(actor) + file, path_dataset)
 
 
+
 def split_train_test(path_dataset, path_train, path_test):
     all_files =  os.listdir(path_dataset)
-    all_files_sz = len(all_files)
+    # list of files names to put in train folder
+    train_files = []
+    # list of file names to put in test folder
+    test_files = []
 
-    # we do a 80%/20% train/test split on the data
-    test_sz = math.floor(0.2 * all_files_sz)
+    # separate the files according to their emotion label
+    emotion_dict = {3:[],4:[],5:[],6:[],7:[],8:[]}
+    for file in all_files:
+        emotion_label = int(file.rstrip(".wav").split("-")[2])
+        emotion_dict[emotion_label].append(file)
 
-    # randomly sample 20% of the dataset to be the test set
-    test_data = random.sample(all_files, test_sz)
+    #for each emotion, we split the files into an 80/20 train/test split
+    for i in range(3,9):
+        perm = np.random.permutation(len(emotion_dict[i]))
+        test_sz = math.floor(0.2 * len(emotion_dict[i]))
+        test_files += [emotion_dict[i][perm[j]] for j in range(test_sz)]
+        train_files += [emotion_dict[i][perm[j]] for j in range(test_sz, len(emotion_dict[i]))]
 
-    train_data = [x for x in all_files if x not in test_data]
+    print(train_files)
+    print(test_files)
 
-    for file in train_data:
+    for file in train_files:
+        if file in test_files:
+            print("AHHH")
+
+    for file in train_files:
         shutil.move(path_dataset + "/" + file, path_train)
 
-    for file in test_data:
+    for file in test_files:
         shutil.move(path_dataset + "/" + file, path_test)
 
 def main():
     path_dataset = "./Dataset"
     # create a temporary directory to hold all the data samples
     os.mkdir(path_dataset)
-    get_data_samples(path_dataset)
+    class_sample_num = get_data_samples(path_dataset)
 
     path_train = "./Train"
     path_test = "./Test"
@@ -87,6 +100,21 @@ def main():
     print("Train size:", train_sz)
     print("Test size:", test_sz)
     print("Dataset size:", train_sz + test_sz)
+    print("Dataset split:", class_sample_num)
+
+    test_dis = [0,0,0,0,0,0]
+    train_dis = [0,0,0,0,0,0]
+
+    for file in os.listdir(path_train):
+        emotion = int(file.rstrip(".wav").split("-")[2])
+        train_dis[emotion-3] += 1
+
+    for file in os.listdir(path_test):
+        emotion = int(file.rstrip(".wav").split("-")[2])
+        test_dis[emotion-3] += 1
+
+    print("Train distribution:", train_dis)
+    print("Test distribution:", test_dis)
 
 if __name__ == "__main__":
     main()
