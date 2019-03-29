@@ -10,6 +10,7 @@ import numpy as np
 from sklearn.decomposition import PCA
 from sklearn.svm import SVC
 from sklearn.metrics import confusion_matrix
+from sklearn.cluster.k_means_ import KMeans
 
 # extract the X and X_test matrices into text files
 '''
@@ -132,3 +133,47 @@ y_pred = svm.predict(X_test)
 print("Test accuracy: ", np.mean(y_pred == y_test)*100, "%", sep = '')
 print(confusion_matrix(y_test, y_pred))
 '''''''''
+
+#K-means algorithm
+'''
+path_train = "./Train"
+num_classes = 6
+X = np.zeros((len(os.listdir(path_train)),249*13))
+
+f = open("./X.txt", 'r')
+i = 0
+for line in f:
+    value = np.asarray(line.rstrip('\n').split('\t')).astype(np.float)
+    X[i] = value
+    i += 1
+
+x_train_mean, x_train_std = train_normalize(X)
+
+X = (X - (x_train_mean)) / (x_train_std)
+y = get_labels("./Train")
+
+kmeans = KMeans(n_clusters=num_classes, init='k-means++', n_init=250)
+kmeans.fit(X, y)
+
+path_test = "./Test"
+X_test = np.zeros((len(os.listdir(path_test)), 249*13))
+
+f = open("./X_test.txt", 'r')
+i = 0
+for line in f:
+    value = np.asarray(line.rstrip('\n').split('\t')).astype(np.float)
+
+    X_test[i] = value
+    i += 1
+
+X_test = (X_test - (x_train_mean)) / (x_train_std)
+
+y_test = get_labels(path_test)
+y_pred = kmeans.predict(X_test)
+
+print(y_pred + 3)
+print(y_test)
+print("Test accuracy: ", np.mean((y_pred + 3) == y_test)*100, "%", sep = '')
+'''
+
+
