@@ -1,7 +1,4 @@
-#Preprocessor methods for the feature matrix
-
 import numpy as np
-from sklearn.decomposition import pca
 
 def train_normalize(x_train):
     '''

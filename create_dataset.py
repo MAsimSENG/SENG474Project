@@ -25,7 +25,6 @@ def get_data_samples(path_dataset):
 
         #Actor 18 has no song files
         if not actor == "18":
-            #files in the actor's directory in the directory of songs
             files_song = os.listdir("./Audio_Song_Actors_01-24/Actor_{}".format(actor))
             # id of wav file extracted from the wav file's title
             files_song_id = [(f,f.rstrip(".wav").split("-")) for f in files_song]
@@ -35,12 +34,9 @@ def get_data_samples(path_dataset):
                 if int(id[2]) in [3, 4, 5, 6, 7, 8]:
                     wav_files_song.append(file)
 
-            # move files to Dataset directory
             for file in wav_files_song:
                 shutil.move("./Audio_Song_Actors_01-24/Actor_{}/".format(actor) + file, path_dataset)
 
-
-        # files in the actor's directory in the directory of "speeches"
         files_speech = os.listdir("./Audio_Speech_Actors_01-24/Actor_{}".format(actor))
         files_speech_id = [(f,f.rstrip(".wav").split("-")) for f in files_speech]
 

@@ -8,7 +8,11 @@ def get_features(path):
     This function extracts mfcc features from each of the wav files located at the specified path
     and returns a feature matrix containing the mfcc features for each sample
     :param path: str: path to directory containing the wav files for feature extraction
+           N: int: number of data samples
+           D: int: number of feature dimensions
     :return: X: ndarray (N,D): matrix of mfcc features for each sample
+             N: int: number of data samples
+             D: int: number of dimensions per feature
     '''
 
     data_files = os.listdir(path)
@@ -47,10 +51,10 @@ def get_features(path):
         sample_num += 1
 
         # keep track of feature extraction process
-        if sample_num % 10 == 0:
-            print(100 * sample_num / N, "% done extraction", sep = '')
+        if sample_num % 100 == 0:
+            print(100 * sample_num / N, "% done extracting features from {}".format(path), sep = '')
 
-    return X
+    return X, N, D
 
 def get_labels(path):
     '''
@@ -59,7 +63,5 @@ def get_labels(path):
     '''
     data_files = os.listdir(path)
 
-    # data sample labels, the 3rd number (position 2) in the file name corresponds to the sample's emotion label
     y = np.asarray([int(f.rstrip(".wav").split("-")[2]) for f in data_files])
-
     return y
