@@ -1,5 +1,4 @@
 import numpy as np
-from feature_extraction import get_features
 
 def read_features(read_file, N, D):
     '''
