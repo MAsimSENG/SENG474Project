@@ -73,7 +73,7 @@ def rbf(path_train, path_test, pca_comp=200, rbf_gamma=0.0003, rbf_C=10, X = Non
 
     print("\n__________RBF__________")
     pca = PCA(pca_comp)
-    rbf = SVC(gamma= rbf_gamma, C= rbf_C, kernel='rbf', class_weight='balanced')
+    rbf = SVC(gamma= rbf_gamma, C= rbf_C, kernel='rbf')
 
     print("Extracting features for training...")
 
@@ -113,6 +113,7 @@ def rbf(path_train, path_test, pca_comp=200, rbf_gamma=0.0003, rbf_C=10, X = Non
 
     print("\nTrain accuracy: ", np.mean(y_pred_train == y) * 100, "%", sep='')
     print("Test accuracy: ", np.mean(y_pred == y_test) * 100, "%", sep='')
+    print("Confusion matrix:\n", confusion_matrix(y_test, y_pred))
 
 
 def linear_svm(path_train, path_test, svm_alpha=0.0001, lr=1e-4, num_iter=150, X = None, X_test = None, y=None, y_test=None):
@@ -132,8 +133,8 @@ def linear_svm(path_train, path_test, svm_alpha=0.0001, lr=1e-4, num_iter=150, X
     print("\n__________Linear SVM__________")
     num_classes = 6
     svm = sk.linear_model.SGDClassifier(loss='hinge', penalty='l2',
-                                        alpha=svm_alpha, learning_rate='constant', eta0=lr, tol=1e-10,
-                                        max_iter=num_iter, early_stopping=True, class_weight='balanced')
+                                        alpha=svm_alpha, learning_rate='constant', eta0=lr, tol=1e-5,
+                                        max_iter=num_iter, early_stopping=True)
 
     print("Extracting features for training...")
 
